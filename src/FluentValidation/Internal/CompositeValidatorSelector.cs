@@ -17,18 +17,21 @@
 #endregion
 
 namespace FluentValidation.Internal {
-	using System.Collections.Generic;
-	using System.Linq;
+		using System.Collections.Generic;
+		using System.Linq;
 
-	internal class CompositeValidatorSelector : IValidatorSelector {
-		private IEnumerable<IValidatorSelector> _selectors;
+		internal class CompositeValidatorSelector : IValidatorSelector {
+				private readonly IEnumerable<IValidatorSelector> _selectors;
+				private readonly bool _isFilter;
 
-		public CompositeValidatorSelector(IEnumerable<IValidatorSelector> selectors) {
-			_selectors = selectors;
+				public CompositeValidatorSelector(IEnumerable<IValidatorSelector> selectors, bool isFilter) {
+						_selectors = selectors;
+						_isFilter = isFilter;
+				}
+
+				public bool CanExecute(IValidationRule rule, string propertyPath, IValidationContext context) {
+						return _isFilter ? _selectors.All(s => s.CanExecute(rule, propertyPath, context))
+							: _selectors.Any(s => s.CanExecute(rule, propertyPath, context));
+				}
 		}
-
-		public bool CanExecute(IValidationRule rule, string propertyPath, IValidationContext context) {
-			return _selectors.Any(s => s.CanExecute(rule, propertyPath, context));
-		}
-	}
 }
